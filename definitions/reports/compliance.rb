@@ -23,6 +23,17 @@ module Reports
       mapping.each do |k, query|
         data["compliance_#{k}_count"] = sql_count(query)
       end
+
+      # SAT-41501 / reporting: SCAP tailoring usage summary
+      policies_total = table_exists('foreman_openscap_policies') ? (sql_count('foreman_openscap_policies') || 0) : 0
+      policies_with_tailoring = if table_exists('foreman_openscap_policies')
+                                  (sql_count("foreman_openscap_policies WHERE tailoring_file_id IS NOT NULL") || 0)
+                                else
+                                  0
+                                end
+      data['scap_tailoring_used'] = policies_with_tailoring.positive?
+      data['scap_policies_with_tailoring'] = policies_with_tailoring
+      data['scap_policies_without_tailoring'] = [policies_total - policies_with_tailoring, 0].max
     end
   end
 end

@@ -8,6 +8,7 @@ module Reports
     end
 
     def run
+      data_field('transient_packages_count') { transient_packages_count }
       merge_data('image_mode_hosts_by_os_count') { image_mode_hosts_by_os_count }
       data['remote_execution_transient_package_actions_count'] = transient_actions_count
     end
@@ -45,6 +46,11 @@ module Reports
       SQL
 
       sql_count(sql, cte: cte)
+    end
+
+    # SAT-41501: persistence is tracked on host installed packages.
+    def transient_packages_count
+      sql_count("katello_host_installed_packages WHERE persistence = 'transient'") || 0
     end
   end
 end
